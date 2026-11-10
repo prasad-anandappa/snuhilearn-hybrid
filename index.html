@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SnuhiLearn Hybrid — the study companion that shows its routing</title>
+<link rel="stylesheet" href="styles.css">
+<!-- Optional: create firebase-config.js from firebase-config.example.js once
+     the Firebase project exists, and it will be picked up automatically. -->
+<script src="firebase-config.js" onerror="void 0"></script>
+</head>
+<body>
+<header>
+  <div class="brand">🌵 <strong>SnuhiLearn Hybrid</strong> <span class="tag">offline-first AI study companion</span></div>
+  <div class="chips">
+    <span class="chip" id="chip-nano">On-device (Gemini Nano): …</span>
+    <span class="chip" id="chip-cloud">Cloud (Firebase AI Logic): …</span>
+    <span class="chip" id="chip-net">Network: …</span>
+  </div>
+</header>
+
+<div class="banner hidden" id="demo-banner">
+  <strong>Demo mode:</strong> no Gemini Nano in this browser and no Firebase project connected yet,
+  so answers come from the built-in offline lesson bank (labelled honestly in every routing decision).
+  The hybrid cascade, timeline, meters and offline queue are fully live — connect either tier and the
+  same requests route to real Gemini models.
+</div>
+
+<main>
+  <section class="panel" id="study-panel">
+    <h2>Study</h2>
+    <label>Lesson (seeded from the SnuhiLearn bank)
+      <select id="lesson-select"></select>
+    </label>
+    <div class="row">
+      <button id="btn-prefetch" class="ghost">⬇ Prefetch this lesson for offline</button>
+      <span id="prefetch-status" class="muted"></span>
+    </div>
+
+    <div class="tasks" id="task-tabs">
+      <button data-task="qa" class="active">Ask</button>
+      <button data-task="flashcards">Flashcard Forge</button>
+      <button data-task="summary">Summarize</button>
+      <button data-task="translate">Translate</button>
+      <button data-task="worked">Worked Solution</button>
+      <button data-task="photo">Photo-a-Problem</button>
+      <button data-task="mocktest">Mock Test</button>
+    </div>
+
+    <label id="lang-row" class="hidden">Target language
+      <select id="lang-select"><option>Hindi</option><option>Kannada</option><option>Spanish</option></select>
+    </label>
+    <label id="photo-row" class="hidden">Attach the problem photo (optional — used only if the cloud vision tier is connected)
+      <input type="file" id="photo-input" accept="image/*">
+    </label>
+    <textarea id="input" rows="5" placeholder="Ask a question, paste a paragraph for flashcards/summary/translation, or describe a problem…"></textarea>
+    <div class="row">
+      <button id="btn-run" class="primary">Run ▸</button>
+      <button id="btn-listen" class="ghost" title="Voice in">🎙 Speak</button>
+      <button id="btn-speak" class="ghost" title="Read the answer aloud">🔊 Listen</button>
+      <label class="inline"><input type="checkbox" id="simulate-offline"> Simulate offline (airplane mode)</label>
+    </div>
+
+    <div id="answer-wrap" class="hidden">
+      <h3>Answer <span id="answer-tier" class="tier"></span></h3>
+      <div id="answer" class="answer"></div>
+      <div id="cards" class="cards"></div>
+      <div id="decision" class="decision"></div>
+    </div>
+  </section>
+
+  <aside>
+    <section class="panel">
+      <h2>Routing timeline</h2>
+      <div class="meters" id="meters"></div>
+      <div class="row">
+        <button id="btn-flush" class="ghost">↻ Run offline catch-up (<span id="queue-count">0</span> queued)</button>
+        <button id="btn-replay" class="ghost">▶ Routing replay</button>
+      </div>
+      <div id="replay-out"></div>
+      <ol id="timeline" class="timeline"></ol>
+    </section>
+
+    <section class="panel">
+      <h2>Privacy vault</h2>
+      <p class="muted">History, progress and cached lessons live only in this browser by default.
+      Cloud sync is <strong>off</strong> unless you turn it on — and even then it needs a connected Firebase project.</p>
+      <label class="inline"><input type="checkbox" id="sync-optin"> I opt in to cloud sync of my study progress</label>
+      <div class="row"><button id="btn-sync" class="ghost">Sync now</button><span id="sync-status" class="muted"></span></div>
+      <h3>Parent / teacher view</h3>
+      <div id="dashboard" class="muted">No study activity yet.</div>
+    </section>
+  </aside>
+</main>
+
+<section class="panel wide" id="why">
+  <h2>Why hybrid? — the architecture, on one page</h2>
+  <table>
+    <thead><tr><th>Task</th><th>Runs</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Instant Q&amp;A, flashcards, short summaries, short translation</td><td><span class="tier nano">On-device · Gemini Nano</span></td><td>Latency (ms, not seconds), privacy (a child's question never leaves the device), $0 marginal cost, works on a bus with no signal.</td></tr>
+      <tr><td>Worked solutions, mock tests, photo problems, long passages</td><td><span class="tier cloud">Cloud · Gemini Flash → Pro</span></td><td>Multi-step reasoning depth a small on-device model should not fake. The cascade escalates only when confidence demands it — and shows the hand-off.</td></tr>
+      <tr><td>Deep task while offline</td><td><span class="tier fallback">Local helper now + cloud catch-up</span></td><td>Answered immediately from the on-device lesson bank, queued transparently, and re-run against the cloud the moment connectivity returns.</td></tr>
+      <tr><td>History, progress, cached lessons</td><td><span class="tier nano">Device only, by default</span></td><td>Sync is opt-in, never silent. Children's learning data is not a cloud default.</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">Every answer in this app carries its routing decision — tier, model, reason, latency, estimated cost.
+  Hybrid inference is not a hidden optimisation here; it is the product surface, because a student (and a judge)
+  should be able to <em>see</em> why an answer came from where it did.</p>
+</section>
+
+<footer class="muted">SnuhiLearn Hybrid · built for #BuildHybridAI 2026 with Firebase AI Logic · seed lesson data from SnuhiLearn (482-lesson bank; slice ships with the app) · all app code new for this hackathon.</footer>
+
+<script type="module" src="src/app.js"></script>
+</body>
+</html>
